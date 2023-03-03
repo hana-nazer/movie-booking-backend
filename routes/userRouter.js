@@ -2,13 +2,14 @@ const router = require("express").Router();
 const User = require("../models/userModel");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const authMiddleware = require("../middlewares/authMiddleware");
 
 //register a new user
 router.post("/register", async (req, res) => {
   try {
     //check if the user already exists
     console.log(req.body.email);
-    const userExists =await User.findOne({ email: req.body.email });
+    const userExists = await User.findOne({ email: req.body.email });
     if (userExists) {
       return res.send({
         success: false,
@@ -56,11 +57,17 @@ router.post("/login", async (req, res) => {
     }
 
     // create and assign a token
-    // In the login we will get the email and password from the user ,if it is valid we need to 
+    // In the login we will get the email and password from the user ,if it is valid we need to
     // create and send the jwt. why ? by this token we check if the user is logged in or not
     // 'sign' takes three parameters 1. data that you are encrypting , 2. secret key 3.validity of the token
-    const token =  jwt.sign({userId:user._id},process.env.SECRET,{expiresIn:'1d'})
-    res.send({success:true ,message : 'user loggedin successfully', data:token})
+    const token = jwt.sign({ userId: user._id }, process.env.SECRET, {
+      expiresIn: "1d",
+    });
+    res.send({
+      success: true,
+      message: "user loggedin successfully",
+      data: token,
+    });
     // we send the token in the data and it stored in the local storage ,so after the login successful
     // it will send this token everytime for the protected routes
   } catch (error) {
@@ -71,4 +78,21 @@ router.post("/login", async (req, res) => {
   }
 });
 
+//get user by id
+router.get("/get-current-user", authMiddleware, async (req, res) => {
+  try {
+    console.log("userrrrrrr");
+    console.log(req.body.userId);
+    const user = await User.findById(req.body.userId).select("-password");
+    console.log(user);
+    res.send({
+      succes: true,
+      message: "user details fetched succesfully",
+      data: user,
+    });
+  } catch (error) {
+    console.log("error generated");
+    res.send({ succes: false, message: error.message });
+  }
+});
 module.exports = router;
