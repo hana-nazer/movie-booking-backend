@@ -81,18 +81,16 @@ router.post("/login", async (req, res) => {
 //get user by id
 router.get("/get-current-user", authMiddleware, async (req, res) => {
   try {
-    console.log("userrrrrrr");
-    console.log(req.body.userId);
+  
     const user = await User.findById(req.body.userId).select("-password");
-    console.log(user);
     res.send({
-      succes: true,
+      success: true,
       message: "user details fetched succesfully",
       data: user,
     });
   } catch (error) {
     console.log("error generated");
-    res.send({ succes: false, message: error.message });
+    res.send({ success: false, message: error.message });
   }
 });
 module.exports = router;
